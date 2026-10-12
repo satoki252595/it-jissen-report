@@ -1,30 +1,27 @@
 ---
 import Base from '../layouts/Base.astro';
 import Calendar from '../components/Calendar.astro';
+import DomainBoard from '../components/DomainBoard.astro';
 import IssueList from '../components/IssueList.astro';
-import { domains } from '../config/domains.js';
 import { getReports } from '../lib/reports.js';
+import { homeBoard } from '../lib/topics.js';
 
 const reports = await getReports();
 const latest = reports[reports.length - 1];
 const archived = [...reports].reverse();
+const panels = homeBoard(reports);
 const base = import.meta.env.BASE_URL;
 const description = 'AIからネットワークまで、11の領域の動きを現場の判断に使える形で毎日まとめる日刊。';
 ---
 
 <Base title="IT実践レポート" description={description}>
   <main id="main">
-    <section class="section">
+    <section class="section hero">
       <div class="container measure">
         <p class="kicker">日刊</p>
         <h1>IT実践レポート</h1>
         <p class="lede">{description}</p>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="container measure">
-        <p class="kicker">
+        <p class="meta">
           第{latest.number}号 · <time datetime={latest.date}>{latest.label}</time>（{latest.weekday}） · {latest.minutes}分で読める
         </p>
         <h2 id="latest-heading">今日の要点</h2>
@@ -37,34 +34,16 @@ const description = 'AIからネットワークまで、11の領域の動きを�
             </ul>
           </div>
         </aside>
-        <ul class="tag-list">
-          {
-            latest.domains.map((domain) => (
-              <li>
-                <a class={`tag tag-${domain.slug}`} href={`${base}domains/${domain.slug}/`}>
-                  {domain.label}
-                </a>
-              </li>
-            ))
-          }
-        </ul>
         <a class="button" href={`${base}reports/${latest.date}/`}>この号を読む</a>
       </div>
-      <nav class="container domain-filter-wrap" aria-labelledby="domain-filter-heading">
-        <h2 id="domain-filter-heading">領域から探す</h2>
-        <ul class="domain-filter">
-          {
-            domains.map((domain) => (
-              <li>
-                <a class={`tag tag-${domain.slug}`} href={`${base}domains/${domain.slug}/`}>
-                  <span aria-hidden="true">{domain.emoji}</span>
-                  {domain.name}
-                </a>
-              </li>
-            ))
-          }
-        </ul>
-      </nav>
+    </section>
+
+    <section class="section" aria-labelledby="domains-heading">
+      <div class="container">
+        <h2 id="domains-heading">領域</h2>
+        <p class="lede">11の領域を毎回表示します。その日のトピックがなければ、直近の記録を残します。</p>
+        <DomainBoard panels={panels} base={base} />
+      </div>
     </section>
 
     <section class="section" id="archive" aria-labelledby="archive-heading">
@@ -73,7 +52,7 @@ const description = 'AIからネットワークまで、11の領域の動きを�
         <p class="meta">{reports.length}件</p>
         <div class="archive-layout">
           <IssueList reports={archived} />
-          <Calendar reports={reports} />
+          <Calendar reports={reports} latest={latest.date} />
         </div>
       </div>
     </section>

@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { extractHeadings, renderMarkdown } from './render-report.js';
 import { domains, matchDomain } from '../config/domains.js';
+import { extractTopics } from './topics.js';
 
 export { domains as DOMAINS };
 
@@ -77,6 +78,12 @@ export async function getReports() {
     const formatted = formatDate(date);
     const highlights = extractHighlights(raw);
     const domains = extractDomains(raw);
+    const topics = extractTopics(raw).map((topic) => ({
+      ...topic,
+      date,
+      short: formatted.short,
+      weekday: formatted.weekday,
+    }));
     const minutes = readingMinutes(raw);
     const title = `IT実践レポート ${formatted.label}`;
     const html = await renderMarkdown(raw);
@@ -87,6 +94,7 @@ export async function getReports() {
       description: plainDescription(highlights, title),
       highlights,
       domains,
+      topics,
       minutes,
       html,
       headings: extractHeadings(html),

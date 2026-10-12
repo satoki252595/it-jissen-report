@@ -10,7 +10,13 @@ const index = [...reports].reverse().map((report) => ({
   weekday: report.weekday,
   number: report.number,
   titleText: report.highlights[0] || report.title,
-  text: [report.title, report.label, ...report.highlights, ...report.domains.map((domain) => `${domain.label} ${domain.name}`)]
+  text: [
+    report.title,
+    report.label,
+    ...report.highlights,
+    ...report.domains.map((domain) => `${domain.label} ${domain.name}`),
+    ...report.topics.map((topic) => `${topic.title} ${topic.blurb}`),
+  ]
     .join(' ')
     .toLowerCase(),
 }));

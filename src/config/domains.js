@@ -35,6 +35,7 @@ export const domains = [
     emoji: '☁️',
     label: 'クラウド',
     name: 'クラウド・インフラ・DevOps',
+    topicAliases: ['Cloud'],
     legacyColor: 'orange',
     light: { bg: '#f8efe6', fg: '#5a3414' },
     dark: { bg: '#3a2c22', fg: '#f3e2d2' },
@@ -44,6 +45,7 @@ export const domains = [
     emoji: '📊',
     label: 'データ',
     name: 'データ・スタートアップ・トレンド',
+    topicAliases: ['トレンド', 'Data'],
     legacyColor: 'green',
     light: { bg: '#e7f3ec', fg: '#1a4330' },
     dark: { bg: '#1c3328', fg: '#d5f0e2' },
@@ -118,6 +120,28 @@ const byKey = new Map();
 for (const domain of domains) {
   byKey.set(domain.slug, domain);
   if (domain.legacyColor) byKey.set(domain.legacyColor, domain);
+}
+
+function plainCell(value) {
+  return String(value)
+    .replace(/<[^>]+>/g, '')
+    .replace(/[*_`]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+export function matchTopicDomain(cell) {
+  const text = plainCell(cell);
+  if (!text) return null;
+  for (const domain of domains) {
+    if (text.includes(domain.emoji)) return domain;
+  }
+  const bare = text.replace(/\s+/g, '').toLowerCase();
+  for (const domain of domains) {
+    const names = [domain.label, ...(domain.topicAliases || [])];
+    if (names.some((name) => name.replace(/\s+/g, '').toLowerCase() === bare)) return domain;
+  }
+  return null;
 }
 
 export function matchDomain(heading) {

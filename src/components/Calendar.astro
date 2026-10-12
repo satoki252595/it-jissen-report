@@ -1,7 +1,7 @@
 ---
 import { monthCalendars } from '../lib/reports.js';
 
-const { reports } = Astro.props;
+const { reports, latest } = Astro.props;
 const months = monthCalendars(reports);
 const base = import.meta.env.BASE_URL;
 const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
@@ -20,7 +20,11 @@ const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
         <div class="calendar-grid">
           {month.cells.map((cell) =>
             cell?.report ? (
-              <a href={`${base}reports/${cell.iso}/`} aria-label={`${month.month}月${cell.day}日のレポート`}>
+              <a
+                href={`${base}reports/${cell.iso}/`}
+                aria-label={`${month.month}月${cell.day}日のレポート`}
+                aria-current={cell.iso === latest ? 'date' : undefined}
+              >
                 {cell.day}
               </a>
             ) : (

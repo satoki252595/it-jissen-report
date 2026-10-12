@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { domains } from '../src/config/domains.js';
 import { extractDomains, getReports } from '../src/lib/reports.js';
 import { renderMarkdown } from '../src/lib/render-report.js';
+import { homeBoard } from '../src/lib/topics.js';
 
 const errors = [];
 
@@ -29,6 +30,23 @@ if (emptyFixture.includes('{color=') || emptyFixture.includes('{domain=')) fail(
 
 const mentioned = extractDomains('## 🤖 AI {color="purple"}\n\nこの節ではセキュリティとアーキテクチャに触れる。\n');
 if (mentioned.map((domain) => domain.slug).join(',') !== 'ai') fail(`body text reclassified domains: ${mentioned.map((d) => d.slug)}`);
+
+const board = homeBoard(reports);
+if (board.length !== 11) fail(`home board has ${board.length} domains`);
+const shownKeys = [];
+for (const panel of board) {
+  if (panel.today.length === 0 && panel.recent.length === 0 && panel.count !== 0) {
+    fail(`${panel.domain.slug}: history hidden`);
+  }
+  for (const topic of [...panel.today, ...panel.recent]) shownKeys.push(topic.key);
+}
+if (new Set(shownKeys).size !== shownKeys.length) fail('home shows a duplicate topic');
+const aiPanel = board.find((panel) => panel.domain.slug === 'ai');
+if (!aiPanel || aiPanel.today.length < 1) fail('latest issue has no AI topics on the home board');
+const quiet = board.find((panel) => panel.domain.slug === 'security');
+if (!quiet || quiet.today.length > 0 || quiet.count !== 0) fail('security domain was reclassified');
+const topicTotal = reports.reduce((sum, report) => sum + report.topics.length, 0);
+if (topicTotal < 13 * 4) fail(`too few topics extracted: ${topicTotal}`);
 
 for (const report of reports) {
   const html = report.html;
@@ -97,7 +115,8 @@ for (const domain of domains) {
   if (!home.includes(domain.name)) fail(`home missing domain ${domain.name}`);
   if (!home.includes(`tag-${domain.slug}`)) fail(`home missing tag ${domain.slug}`);
 }
-if (!home.includes('この領域') && !home.includes('領域から探す')) fail('home missing domain filter heading');
+if (!home.includes('本日は該当なし')) fail('home missing empty domain state');
+if (!home.includes('id="domains-heading"')) fail('home missing domain overview');
 for (const script of home.matchAll(/<script type="module">([\s\S]*?)<\/script>/g)) {
   jsBytes += Buffer.byteLength(script[1]);
 }
