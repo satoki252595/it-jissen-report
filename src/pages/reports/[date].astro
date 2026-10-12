@@ -1,0 +1,109 @@
+---
+import Base from '../../layouts/Base.astro';
+import Toc from '../../components/Toc.astro';
+import { getReports, hrefFor, neighbors, relatedReports } from '../../lib/reports.js';
+
+export async function getStaticPaths() {
+  const reports = await getReports();
+  return reports.map((report) => ({
+    params: { date: report.date },
+    props: { report },
+  }));
+}
+
+const { report } = Astro.props;
+const reports = await getReports();
+const { prev, next } = neighbors(reports, report.date);
+const related = relatedReports(reports, report);
+const base = import.meta.env.BASE_URL;
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: report.title,
+  datePublished: report.date,
+  inLanguage: 'ja',
+  description: report.description,
+  author: { '@type': 'Organization', name: 'IT実践レポート' },
+  mainEntityOfPage: new URL(hrefFor(base, report), Astro.site).href,
+};
+---
+
+<Base title={report.title} description={report.description} ogType="article" published={report.date}>
+  <main id="main">
+    <div class="issue-wrap">
+      <article id="report">
+        <header class="issue-head">
+          <h1>{report.title}</h1>
+          <p class="meta">
+            <time datetime={report.date}>{report.label}</time>（{report.weekday}） · {report.minutes}分で読める · 第{report.number}号
+          </p>
+          <ul class="tag-list">
+            {
+              report.domains.map((domain) => (
+                <li>
+                  <a class={`tag tag-${domain.slug}`} href={`${base}domains/${domain.slug}/`}>
+                    {domain.label}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </header>
+
+        <details class="toc-mobile">
+          <summary>この号の内容</summary>
+          <Toc headings={report.headings} id="toc-mobile" />
+        </details>
+
+        <div class="prose" set:html={report.html} />
+
+        <nav class="pager" aria-label="前後の号">
+          {
+            prev ? (
+              <a class="pager-link" href={hrefFor(base, prev)}>
+                <span class="pager-dir">前の日</span>
+                <span>{prev.short}</span>
+              </a>
+            ) : (
+              <p class="pager-end">これが最初の号</p>
+            )
+          }
+          {
+            next ? (
+              <a class="pager-link pager-next" href={hrefFor(base, next)}>
+                <span class="pager-dir">次の日</span>
+                <span>{next.short}</span>
+              </a>
+            ) : (
+              <p class="pager-end pager-next">これが最新の号</p>
+            )
+          }
+        </nav>
+
+        {
+          related.length > 0 && (
+            <section class="related" aria-labelledby="related-heading">
+              <h2 id="related-heading">関連する号</h2>
+              <ul class="related-list">
+                {related.map((item) => (
+                  <li>
+                    <a class="card" href={hrefFor(base, item)}>
+                      <span class="meta">
+                        {item.label} · 第{item.number}号
+                      </span>
+                      <p>{item.highlights[0] || item.title}</p>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )
+        }
+      </article>
+      <aside class="toc-desktop">
+        <Toc headings={report.headings} id="toc-desktop" />
+      </aside>
+    </div>
+  </main>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd).replace(/</g, '\\u003c')} />
+</Base>

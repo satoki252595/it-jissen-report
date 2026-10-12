@@ -1,0 +1,23 @@
+---
+const { topics, base, showDate = true } = Astro.props;
+---
+
+<ul class="topic-list">
+  {
+    topics.map((topic) => (
+      <li>
+        <a class="topic-row" href={`${base}reports/${topic.date}/${topic.hash || ''}`}>
+          <span class="topic-row-title">{topic.title}</span>
+          {topic.blurb ? <span class="topic-row-blurb">{topic.blurb}</span> : null}
+          {
+            showDate ? (
+              <time class="meta" datetime={topic.date}>
+                {topic.short}（{topic.weekday}）
+              </time>
+            ) : null
+          }
+        </a>
+      </li>
+    ))
+  }
+</ul>

@@ -1,0 +1,29 @@
+---
+const { reports } = Astro.props;
+const base = import.meta.env.BASE_URL;
+---
+
+<ol class="issue-list">
+  {
+    reports.map((report) => (
+      <li>
+        <a class="issue-row" href={`${base}reports/${report.date}/`}>
+          <span class="issue-row-date">
+            <span class="issue-row-day">{report.short}</span>
+            <span class="issue-row-meta">
+              第{report.number}号 · {report.weekday}
+            </span>
+          </span>
+          <span class="issue-row-body">
+            <span class="issue-row-title">{report.highlights[0] || report.title}</span>
+            <span class="tags">
+              {report.domains.map((domain) => (
+                <span class={`tag tag-${domain.slug}`}>{domain.label}</span>
+              ))}
+            </span>
+          </span>
+        </a>
+      </li>
+    ))
+  }
+</ol>

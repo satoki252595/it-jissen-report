@@ -1,0 +1,63 @@
+---
+import Base from '../../layouts/Base.astro';
+import TopicList from '../../components/TopicList.astro';
+import { domains } from '../../config/domains.js';
+import { getReports } from '../../lib/reports.js';
+import { domainHistory } from '../../lib/topics.js';
+
+export async function getStaticPaths() {
+  const reports = await getReports();
+  return domains.map((domain) => {
+    const history = domainHistory(reports, domain.slug);
+    const latest = reports[reports.length - 1];
+    const todayCount = history.find((group) => group.report.date === latest.date)?.topics.length || 0;
+    return {
+      params: { domain: domain.slug },
+      props: { domain, history, todayCount },
+    };
+  });
+}
+
+const { domain, history, todayCount } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const total = history.reduce((sum, group) => sum + group.topics.length, 0);
+---
+
+<Base title={`${domain.name}｜IT実践レポート`} description={`${domain.name}のトピックを新しい順にたどる。`}>
+  <main id="main">
+    <section class="section">
+      <div class="container measure">
+        <p class="kicker">領域</p>
+        <h1>
+          <span aria-hidden="true">{domain.emoji}</span>
+          {domain.name}
+        </h1>
+        <p class="meta">
+          {total}件 · <a href={`${base}domains/`}>すべての領域</a>
+        </p>
+        {todayCount > 0 ? <p class="meta">本日 {todayCount}件</p> : <p class="topic-empty">本日は該当なし</p>}
+        {
+          total === 0 ? (
+            <p class="meta">これまでのトピックはまだありません。</p>
+          ) : (
+            <>
+              <h2>これまでのトピック</h2>
+              {
+                history.map((group) => (
+                  <section class="history-group" aria-labelledby={`day-${group.report.date}`}>
+                    <h3 id={`day-${group.report.date}`}>
+                      <a href={`${base}reports/${group.report.date}/`}>
+                        <time datetime={group.report.date}>{group.report.label}</time>（{group.report.weekday}）
+                      </a>
+                    </h3>
+                    <TopicList topics={group.topics} base={base} showDate={false} />
+                  </section>
+                ))
+              }
+            </>
+          )
+        }
+      </div>
+    </section>
+  </main>
+</Base>

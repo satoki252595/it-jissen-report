@@ -1,0 +1,47 @@
+---
+import TopicList from './TopicList.astro';
+
+const { panels, base } = Astro.props;
+---
+
+<div class="domain-board">
+  {
+    panels.map((panel) => (
+      <article class="card domain-panel">
+        <header class="domain-panel-head">
+          <h3>
+            <a href={`${base}domains/${panel.domain.slug}/`}>
+              <span aria-hidden="true">{panel.domain.emoji}</span>
+              {panel.domain.name}
+            </a>
+          </h3>
+          <a class={`tag tag-${panel.domain.slug}`} href={`${base}domains/${panel.domain.slug}/`}>
+            {panel.count}件
+          </a>
+        </header>
+        {
+          panel.today.length > 0 ? (
+            <>
+              <p class="meta">本日 {panel.today.length}件</p>
+              <TopicList topics={panel.today} base={base} />
+            </>
+          ) : (
+            <>
+              <p class="topic-empty">本日は該当なし</p>
+              {
+                panel.recent.length > 0 ? (
+                  <>
+                    <p class="kicker">最近のトピック</p>
+                    <TopicList topics={panel.recent} base={base} />
+                  </>
+                ) : (
+                  <p class="meta">これまでのトピックはまだありません。</p>
+                )
+              }
+            </>
+          )
+        }
+      </article>
+    ))
+  }
+</div>

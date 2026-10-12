@@ -1,0 +1,51 @@
+---
+import Base from '../../layouts/Base.astro';
+import { domains as domainList } from '../../config/domains.js';
+import { getReports } from '../../lib/reports.js';
+import { domainHistory } from '../../lib/topics.js';
+
+const reports = await getReports();
+const latest = reports[reports.length - 1];
+const base = import.meta.env.BASE_URL;
+const domains = domainList.map((domain) => {
+  const history = domainHistory(reports, domain.slug);
+  const total = history.reduce((sum, group) => sum + group.topics.length, 0);
+  const newest = history[0]?.topics[0] || null;
+  const today = history.find((group) => group.report.date === latest.date)?.topics.length || 0;
+  return { ...domain, total, newest, today };
+});
+---
+
+<Base title="領域｜IT実践レポート" description="11の領域から、トピックの履歴をたどる。">
+  <main id="main">
+    <section class="section">
+      <div class="container">
+        <p class="kicker">フィルタ</p>
+        <h1>領域</h1>
+        <p class="lede">11の領域を、新しいトピックから順にたどれます。</p>
+        <div class="domain-grid">
+          {
+            domains.map((domain) => (
+              <a class="card domain-card" href={`${base}domains/${domain.slug}/`}>
+                <strong>
+                  <span aria-hidden="true">{domain.emoji}</span>
+                  {domain.name}
+                </strong>
+                <span class={`tag tag-${domain.slug}`}>{domain.total}件</span>
+                {
+                  domain.today > 0 ? (
+                    <span class="domain-card-note">本日 {domain.today}件 · {domain.newest.title}</span>
+                  ) : domain.newest ? (
+                    <span class="domain-card-note">本日は該当なし · 最近は{domain.newest.short}の「{domain.newest.title}」</span>
+                  ) : (
+                    <span class="domain-card-note">本日は該当なし · これまでのトピックはまだありません</span>
+                  )
+                }
+              </a>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+  </main>
+</Base>

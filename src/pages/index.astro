@@ -1,0 +1,60 @@
+---
+import Base from '../layouts/Base.astro';
+import Calendar from '../components/Calendar.astro';
+import DomainBoard from '../components/DomainBoard.astro';
+import IssueList from '../components/IssueList.astro';
+import { getReports } from '../lib/reports.js';
+import { homeBoard } from '../lib/topics.js';
+
+const reports = await getReports();
+const latest = reports[reports.length - 1];
+const archived = [...reports].reverse();
+const panels = homeBoard(reports);
+const base = import.meta.env.BASE_URL;
+const description = 'AIからネットワークまで、11の領域の動きを現場の判断に使える形で毎日まとめる日刊。';
+---
+
+<Base title="IT実践レポート" description={description}>
+  <main id="main">
+    <section class="section hero">
+      <div class="container measure">
+        <p class="kicker">日刊</p>
+        <h1>IT実践レポート</h1>
+        <p class="lede">{description}</p>
+        <p class="meta">
+          第{latest.number}号 · <time datetime={latest.date}>{latest.label}</time>（{latest.weekday}） · {latest.minutes}分で読める
+        </p>
+        <h2 id="latest-heading">今日の要点</h2>
+        <aside class="callout callout-highlight">
+          <span class="callout-icon" aria-hidden="true">⚡</span>
+          <div>
+            <p><strong>今日のハイライト</strong></p>
+            <ul>
+              {latest.highlights.map((item) => <li>{item}</li>)}
+            </ul>
+          </div>
+        </aside>
+        <a class="button" href={`${base}reports/${latest.date}/`}>この号を読む</a>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="domains-heading">
+      <div class="container">
+        <h2 id="domains-heading">領域</h2>
+        <p class="lede">11の領域を毎回表示します。その日のトピックがなければ、直近の記録を残します。</p>
+        <DomainBoard panels={panels} base={base} />
+      </div>
+    </section>
+
+    <section class="section" id="archive" aria-labelledby="archive-heading">
+      <div class="container">
+        <h2 id="archive-heading">これまでの号</h2>
+        <p class="meta">{reports.length}件</p>
+        <div class="archive-layout">
+          <IssueList reports={archived} />
+          <Calendar reports={reports} latest={latest.date} />
+        </div>
+      </div>
+    </section>
+  </main>
+</Base>

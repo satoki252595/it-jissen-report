@@ -1,0 +1,14 @@
+---
+const { headings, id } = Astro.props;
+---
+
+<nav class="toc" id={id} aria-label="目次">
+  <p class="toc-label">目次</p>
+  {
+    headings.map((heading) => (
+      <a class={`depth-${heading.depth}`} href={`#${heading.id}`}>
+        {heading.text}
+      </a>
+    ))
+  }
+</nav>

@@ -1,0 +1,59 @@
+---
+import Base from '../layouts/Base.astro';
+import { getReports, hrefFor } from '../lib/reports.js';
+
+const reports = await getReports();
+const base = import.meta.env.BASE_URL;
+const index = [...reports].reverse().map((report) => ({
+  href: hrefFor(base, report),
+  short: report.short,
+  weekday: report.weekday,
+  number: report.number,
+  titleText: report.highlights[0] || report.title,
+  text: [
+    report.title,
+    report.label,
+    ...report.highlights,
+    ...report.domains.map((domain) => `${domain.label} ${domain.name}`),
+    ...report.topics.map((topic) => `${topic.title} ${topic.blurb}`),
+  ]
+    .join(' ')
+    .toLowerCase(),
+}));
+---
+
+<Base title="検索｜IT実践レポート" description="号の見出しとハイライトからレポートを探す。">
+  <main id="main">
+    <section class="section search-page">
+      <div class="container">
+        <p class="kicker">検索</p>
+        <h1>レポートを探す</h1>
+        <form action={`${base}search/`} method="get" role="search">
+          <label class="visually-hidden" for="search-q">キーワード</label>
+          <input id="search-q" name="q" type="search" placeholder="キーワード" autocomplete="off" />
+        </form>
+        <p id="search-empty" class="empty" hidden>該当する号がありません。</p>
+        <ol id="search-list" class="issue-list">
+          {
+            [...reports].reverse().map((report) => (
+              <li>
+                <a class="issue-row" href={hrefFor(base, report)}>
+                  <span class="issue-row-date">
+                    <span class="issue-row-day">{report.short}</span>
+                    <span class="issue-row-meta">
+                      第{report.number}号 · {report.weekday}
+                    </span>
+                  </span>
+                  <span class="issue-row-body">
+                    <span class="issue-row-title">{report.highlights[0] || report.title}</span>
+                  </span>
+                </a>
+              </li>
+            ))
+          }
+        </ol>
+        <script id="search-data" type="application/json" set:html={JSON.stringify(index)} />
+      </div>
+    </section>
+  </main>
+</Base>
