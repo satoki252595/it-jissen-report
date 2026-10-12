@@ -1,0 +1,41 @@
+:root{
+  /* typography */
+  --font-sans:"Noto Sans JP","Hiragino Sans","Yu Gothic UI",system-ui,sans-serif;
+  --font-heading:"Inter","Noto Sans JP",sans-serif;
+  --font-mono:"JetBrains Mono","SFMono-Regular",Consolas,monospace;
+  --fs-sm:0.875rem; --fs-base:1.0625rem; --fs-lg:1.25rem;
+  --fs-h3:1.375rem; --fs-h2:clamp(1.5rem,2.5vw,1.875rem); --fs-h1:clamp(1.75rem,4vw,2.75rem);
+  --lh-body:1.85; --lh-heading:1.35; --measure:40em;
+  /* spacing (8px base) */
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:24px;
+  --sp-6:32px; --sp-7:48px; --sp-8:64px; --sp-9:96px;
+  --container:1200px; --radius:12px;
+  /* color: light */
+  --c-bg:#fafaf9; --c-surface:#ffffff; --c-text:#1a1c1e; --c-muted:#5b6168;
+  --c-border:#e4e6e8; --c-accent:#2b59ff; --c-accent-ink:#ffffff;
+  --c-code-bg:#f3f4f6; --c-ok:#1f8a4c; --c-warn:#b45309;
+  /* motion */
+  --ease:cubic-bezier(.2,.8,.2,1); --dur-1:150ms; --dur-2:240ms; --dur-3:300ms;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  --c-bg:#0f1115; --c-surface:#171a20; --c-text:#e6e8eb; --c-muted:#9aa1ab;
+  --c-border:#2a2f37; --c-accent:#7c9cff; --c-accent-ink:#0f1115; --c-code-bg:#1d2129;
+  color-scheme:dark;
+} }
+:root[data-theme="dark"]{ --c-bg:#0f1115; --c-surface:#171a20; --c-text:#e6e8eb;
+  --c-muted:#9aa1ab; --c-border:#2a2f37; --c-accent:#7c9cff; --c-accent-ink:#0f1115; --c-code-bg:#1d2129;
+  color-scheme:dark; }
+:root[data-theme="light"]{ color-scheme:light; }
+@media (prefers-reduced-motion:reduce){ *{animation:none!important;transition:none!important;scroll-behavior:auto!important} }
+article{max-width:var(--measure);font:400 var(--fs-base)/var(--lh-body) var(--font-sans);
+  line-break:strict;overflow-wrap:anywhere;text-wrap:pretty;}
+pre{background:var(--c-code-bg);font:0.9rem/1.6 var(--font-mono);padding:var(--sp-4);border-radius:var(--radius);overflow-x:auto;tab-size:2}
+.table-wrap{overflow-x:auto} table{font-size:var(--fs-sm);font-variant-numeric:tabular-nums;border-collapse:collapse}
+.card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);
+  transition:transform var(--dur-2) var(--ease)} .card:hover{transform:translateY(-2px)}
+:focus-visible{outline:2px solid var(--c-accent);outline-offset:2px}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) img{filter:brightness(.9)}
+}
+:root[data-theme="dark"] img{filter:brightness(.9)}

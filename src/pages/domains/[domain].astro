@@ -1,0 +1,32 @@
+---
+import Base from '../../layouts/Base.astro';
+import IssueList from '../../components/IssueList.astro';
+import { DOMAINS, getReports } from '../../lib/reports.js';
+
+export async function getStaticPaths() {
+  const reports = await getReports();
+  return Object.values(DOMAINS).map((domain) => ({
+    params: { domain: domain.slug },
+    props: {
+      domain,
+      reports: [...reports].reverse().filter((report) => report.domains.some((item) => item.slug === domain.slug)),
+    },
+  }));
+}
+
+const { domain, reports } = Astro.props;
+const base = import.meta.env.BASE_URL;
+---
+
+<Base title={`${domain.name}｜IT実践レポート`} description={`${domain.name}を扱った号の一覧。`}>
+  <main id="main">
+    <section class="section">
+      <div class="container">
+        <p class="kicker">領域</p>
+        <h1>{domain.name}</h1>
+        <p class="meta">{reports.length}件 · <a href={`${base}domains/`}>すべての領域</a></p>
+        <IssueList reports={reports} />
+      </div>
+    </section>
+  </main>
+</Base>

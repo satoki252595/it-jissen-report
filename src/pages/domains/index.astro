@@ -1,0 +1,35 @@
+---
+import Base from '../../layouts/Base.astro';
+import { DOMAINS, getReports } from '../../lib/reports.js';
+
+const reports = await getReports();
+const base = import.meta.env.BASE_URL;
+const domains = Object.values(DOMAINS).map((domain) => ({
+  ...domain,
+  count: reports.filter((report) => report.domains.some((item) => item.slug === domain.slug)).length,
+}));
+---
+
+<Base title="領域｜IT実践レポート" description="AI、Web、クラウド、データの4領域から号をたどる。">
+  <main id="main">
+    <section class="section">
+      <div class="container measure">
+        <p class="kicker">フィルタ</p>
+        <h1>領域</h1>
+        <p class="lede">レポートは4つの領域で構成されている。気になる領域だけをたどれる。</p>
+        <div class="domain-grid">
+          {
+            domains.map((domain) => (
+              <a class="card domain-card" href={`${base}domains/${domain.slug}/`}>
+                <strong class={`tag tag-${domain.slug}`}>{domain.label}</strong>
+                <span>
+                  {domain.name} · {domain.count}件
+                </span>
+              </a>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+  </main>
+</Base>

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://satoki252595.github.io/it-jissen-report/sitemap-index.xml
