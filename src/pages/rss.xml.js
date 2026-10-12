@@ -24,7 +24,7 @@ export async function GET({ site }) {
   <channel>
     <title>IT実践レポート</title>
     <link>${channel}</link>
-    <description>AI・Web・クラウド・データの動きを、現場の判断に使える形で毎日まとめる日刊。</description>
+    <description>AIからネットワークまで、11の領域の動きを現場の判断に使える形で毎日まとめる日刊。</description>
     <language>ja</language>
     <lastBuildDate>${new Date(`${latest.date}T07:00:00+09:00`).toUTCString()}</lastBuildDate>
     <atom:link href="${channel}rss.xml" rel="self" type="application/rss+xml" />

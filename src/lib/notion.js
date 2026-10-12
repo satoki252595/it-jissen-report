@@ -1,3 +1,5 @@
+import { matchDomain } from '../config/domains.js';
+
 function escapeHtml(value) {
   return value
     .replace(/&/g, '&amp;')
@@ -164,20 +166,25 @@ function transformBlockquote(node) {
 }
 
 function decorateHeading(node) {
+  const raw = node.children
+    .filter((child) => child.type === 'text')
+    .map((child) => child.value)
+    .join('');
   for (const child of node.children) {
     if (child.type !== 'text') continue;
-    const match = child.value.match(/\{color="([^"]+)"\}/);
-    if (!match) continue;
-    child.value = child.value.replace(/\s*\{color="[^"]+"\}\s*/g, '').trimEnd();
+    child.value = child.value.replace(/\s*\{(?:color|domain)="[^"]+"\}\s*/g, ' ').replace(/[ \t]{2,}/g, ' ').trim();
+  }
+  node.children = node.children.filter((child) => child.type !== 'text' || child.value.trim() !== '');
+  const domain = node.depth === 2 ? matchDomain(raw) : null;
+  if (domain) {
     node.data = node.data || {};
     const current = node.data.hProperties?.className || [];
     node.data.hProperties = {
       ...(node.data.hProperties || {}),
-      className: [...current, 'domain', `domain-${match[1]}`],
-      dataDomain: match[1],
+      className: [...current, 'domain', `domain-${domain.slug}`],
+      'data-domain': domain.slug,
     };
   }
-  node.children = node.children.filter((child) => child.type !== 'text' || child.value.trim() !== '');
   if (node.depth >= 4) {
     node.data = node.data || {};
     const current = node.data.hProperties?.className || [];
@@ -210,6 +217,37 @@ function textOf(node) {
   return (node.children || []).map(textOf).join('');
 }
 
+function hasSubstance(node) {
+  if (!node || node.type === 'thematicBreak') return false;
+  if (node.type === 'paragraph') return textOf(node).trim().length > 0;
+  return true;
+}
+
+function omitEmptyDomainSections(children) {
+  const result = [];
+  let index = 0;
+  while (index < children.length) {
+    const node = children[index];
+    const domainHeading = node.type === 'heading' && node.depth === 2 && node.data?.hProperties?.['data-domain'];
+    if (!domainHeading) {
+      result.push(node);
+      index += 1;
+      continue;
+    }
+    let end = index + 1;
+    const section = [];
+    while (end < children.length) {
+      const next = children[end];
+      if (next.type === 'heading' && next.depth === 2) break;
+      section.push(next);
+      end += 1;
+    }
+    if (section.some(hasSubstance)) result.push(node, ...section);
+    index = end;
+  }
+  return result;
+}
+
 export function remarkNotion() {
   return (tree) => {
     transformTree(tree);
@@ -221,6 +259,7 @@ export function remarkNotion() {
       }
       return true;
     });
+    tree.children = omitEmptyDomainSections(tree.children);
     tree.children.push(...notes);
   };
 }

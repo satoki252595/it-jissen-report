@@ -1,6 +1,7 @@
 ---
 import '../styles/tokens.css';
 import '../styles/global.css';
+import { domainTagCss } from '../config/domains.js';
 import { getReports } from '../lib/reports.js';
 
 const { title, description, ogType = 'website', published } = Astro.props;
@@ -54,6 +55,7 @@ function current(href) {
     <meta name="twitter:image" content={image.href} />
     <meta name="theme-color" content="#fafaf9" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)" />
+    <style is:inline set:html={domainTagCss()} />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -104,7 +106,7 @@ function current(href) {
     <slot />
     <footer class="site-footer">
       <div class="container footer-inner">
-        <p>AI・Web・クラウド・データの動きを、翌日から使える形で毎日まとめる日刊。</p>
+        <p>AIからネットワークまで、11の領域の動きを翌日から使える形で毎日まとめる日刊。</p>
         <nav class="footer-links" aria-label="フッター">
           <a href={`${base}rss.xml`}>RSS</a>
           <a href={`${base}domains/`}>領域</a>

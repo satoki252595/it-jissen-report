@@ -1,6 +1,8 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { getReports } from '../src/lib/reports.js';
+import { domains } from '../src/config/domains.js';
+import { extractDomains, getReports } from '../src/lib/reports.js';
+import { renderMarkdown } from '../src/lib/render-report.js';
 
 const errors = [];
 
@@ -10,6 +12,23 @@ function fail(message) {
 
 const reports = await getReports();
 if (reports.length < 13) fail(`expected at least 13 reports, got ${reports.length}`);
+if (domains.length !== 11) fail(`expected 11 domains, got ${domains.length}`);
+
+const legacy = new Set(['ai', 'web', 'cloud', 'data']);
+for (const report of reports) {
+  const slugs = report.domains.map((domain) => domain.slug);
+  if (slugs.join(',') !== 'ai,web,cloud,data') fail(`${report.date}: domains ${slugs.join(',')}`);
+}
+
+const emptyFixture = await renderMarkdown(
+  '## 🛡️ セキュリティ {domain="security"}\n\n## 🤖 AI {color="purple"}\n\n### トピック\n\n本文がある。\n',
+);
+if (emptyFixture.includes('セキュリティ')) fail('empty domain section was rendered');
+if (!emptyFixture.includes('data-domain="ai"')) fail('filled domain section missing data-domain');
+if (emptyFixture.includes('{color=') || emptyFixture.includes('{domain=')) fail('domain attribute leaked');
+
+const mentioned = extractDomains('## 🤖 AI {color="purple"}\n\nこの節ではセキュリティとアーキテクチャに触れる。\n');
+if (mentioned.map((domain) => domain.slug).join(',') !== 'ai') fail(`body text reclassified domains: ${mentioned.map((d) => d.slug)}`);
 
 for (const report of reports) {
   const html = report.html;
@@ -37,7 +56,7 @@ const pages = [
   '404.html',
   'rss.xml',
   'domains/index.html',
-  'domains/ai/index.html',
+  ...domains.map((domain) => `domains/${domain.slug}/index.html`),
   'search/index.html',
   ...reports.map((report) => `reports/${report.date}/index.html`),
 ];
@@ -74,6 +93,11 @@ walk(dist);
 let jsBytes = 0;
 for (const file of jsFiles) jsBytes += statSync(file).size;
 const home = readFileSync(join(dist, 'index.html'), 'utf8');
+for (const domain of domains) {
+  if (!home.includes(domain.name)) fail(`home missing domain ${domain.name}`);
+  if (!home.includes(`tag-${domain.slug}`)) fail(`home missing tag ${domain.slug}`);
+}
+if (!home.includes('この領域') && !home.includes('領域から探す')) fail('home missing domain filter heading');
 for (const script of home.matchAll(/<script type="module">([\s\S]*?)<\/script>/g)) {
   jsBytes += Buffer.byteLength(script[1]);
 }

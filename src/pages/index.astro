@@ -2,13 +2,14 @@
 import Base from '../layouts/Base.astro';
 import Calendar from '../components/Calendar.astro';
 import IssueList from '../components/IssueList.astro';
-import { DOMAINS, getReports } from '../lib/reports.js';
+import { domains } from '../config/domains.js';
+import { getReports } from '../lib/reports.js';
 
 const reports = await getReports();
 const latest = reports[reports.length - 1];
 const archived = [...reports].reverse();
 const base = import.meta.env.BASE_URL;
-const description = 'AI・Web・クラウド・データの動きを、現場の判断に使える形で毎日まとめる日刊。';
+const description = 'AIからネットワークまで、11の領域の動きを現場の判断に使える形で毎日まとめる日刊。';
 ---
 
 <Base title="IT実践レポート" description={description}>
@@ -21,7 +22,7 @@ const description = 'AI・Web・クラウド・データの動きを、現場の
       </div>
     </section>
 
-    <section class="section" aria-labelledby="latest-heading">
+    <section class="section">
       <div class="container measure">
         <p class="kicker">
           第{latest.number}号 · <time datetime={latest.date}>{latest.label}</time>（{latest.weekday}） · {latest.minutes}分で読める
@@ -48,16 +49,22 @@ const description = 'AI・Web・クラウド・データの動きを、現場の
           }
         </ul>
         <a class="button" href={`${base}reports/${latest.date}/`}>この号を読む</a>
-        <div class="home-domains">
+      </div>
+      <nav class="container domain-filter-wrap" aria-labelledby="domain-filter-heading">
+        <h2 id="domain-filter-heading">領域から探す</h2>
+        <ul class="domain-filter">
           {
-            Object.values(DOMAINS).map((domain) => (
-              <a class={`tag tag-${domain.slug}`} href={`${base}domains/${domain.slug}/`}>
-                {domain.name}
-              </a>
+            domains.map((domain) => (
+              <li>
+                <a class={`tag tag-${domain.slug}`} href={`${base}domains/${domain.slug}/`}>
+                  <span aria-hidden="true">{domain.emoji}</span>
+                  {domain.name}
+                </a>
+              </li>
             ))
           }
-        </div>
-      </div>
+        </ul>
+      </nav>
     </section>
 
     <section class="section" id="archive" aria-labelledby="archive-heading">

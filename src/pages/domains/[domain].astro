@@ -1,11 +1,12 @@
 ---
 import Base from '../../layouts/Base.astro';
 import IssueList from '../../components/IssueList.astro';
-import { DOMAINS, getReports } from '../../lib/reports.js';
+import { domains } from '../../config/domains.js';
+import { getReports } from '../../lib/reports.js';
 
 export async function getStaticPaths() {
   const reports = await getReports();
-  return Object.values(DOMAINS).map((domain) => ({
+  return domains.map((domain) => ({
     params: { domain: domain.slug },
     props: {
       domain,
@@ -23,9 +24,12 @@ const base = import.meta.env.BASE_URL;
     <section class="section">
       <div class="container">
         <p class="kicker">領域</p>
-        <h1>{domain.name}</h1>
+        <h1>
+          <span aria-hidden="true">{domain.emoji}</span>
+          {domain.name}
+        </h1>
         <p class="meta">{reports.length}件 · <a href={`${base}domains/`}>すべての領域</a></p>
-        <IssueList reports={reports} />
+        {reports.length === 0 ? <p class="empty">この領域の号はまだありません。</p> : <IssueList reports={reports} />}
       </div>
     </section>
   </main>

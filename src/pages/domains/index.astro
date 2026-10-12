@@ -1,30 +1,32 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { DOMAINS, getReports } from '../../lib/reports.js';
+import { domains as domainList } from '../../config/domains.js';
+import { getReports } from '../../lib/reports.js';
 
 const reports = await getReports();
 const base = import.meta.env.BASE_URL;
-const domains = Object.values(DOMAINS).map((domain) => ({
+const domains = domainList.map((domain) => ({
   ...domain,
   count: reports.filter((report) => report.domains.some((item) => item.slug === domain.slug)).length,
 }));
 ---
 
-<Base title="領域｜IT実践レポート" description="AI、Web、クラウド、データの4領域から号をたどる。">
+<Base title="領域｜IT実践レポート" description="11の領域から号をたどる。">
   <main id="main">
     <section class="section">
-      <div class="container measure">
+      <div class="container">
         <p class="kicker">フィルタ</p>
         <h1>領域</h1>
-        <p class="lede">レポートは4つの領域で構成されている。気になる領域だけをたどれる。</p>
+        <p class="lede">11の領域から、気になるものだけをたどれる。トピックがない領域は、その号の本文には出さない。</p>
         <div class="domain-grid">
           {
             domains.map((domain) => (
               <a class="card domain-card" href={`${base}domains/${domain.slug}/`}>
-                <strong class={`tag tag-${domain.slug}`}>{domain.label}</strong>
-                <span>
-                  {domain.name} · {domain.count}件
-                </span>
+                <strong>
+                  <span aria-hidden="true">{domain.emoji}</span>
+                  {domain.name}
+                </strong>
+                <span class={`tag tag-${domain.slug}`}>{domain.count}件</span>
               </a>
             ))
           }

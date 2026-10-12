@@ -2,13 +2,9 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { extractHeadings, renderMarkdown } from './render-report.js';
+import { domains, matchDomain } from '../config/domains.js';
 
-export const DOMAINS = {
-  purple: { slug: 'ai', label: 'AI', name: 'AI / LLM / エージェント', color: 'purple' },
-  blue: { slug: 'web', label: 'Web', name: 'Web / フルスタック開発', color: 'blue' },
-  orange: { slug: 'cloud', label: 'クラウド', name: 'クラウド / インフラ / DevOps', color: 'orange' },
-  green: { slug: 'data', label: 'データ', name: 'データ / スタートアップ / トレンド', color: 'green' },
-};
+export { domains as DOMAINS };
 
 const reportsDir = fileURLToPath(new URL('../../content/reports/', import.meta.url));
 
@@ -44,12 +40,13 @@ export function extractHighlights(raw) {
 }
 
 export function extractDomains(raw) {
-  const found = [];
-  for (const match of raw.matchAll(/^##\s+(.+?)\s*\{color="(\w+)"\}/gm)) {
-    const domain = DOMAINS[match[2]];
-    if (domain && !found.some((item) => item.slug === domain.slug)) found.push(domain);
+  const source = raw.replace(/```[\s\S]*?```/g, '');
+  const found = new Set();
+  for (const match of source.matchAll(/^##\s+(.+)$/gm)) {
+    const domain = matchDomain(match[1]);
+    if (domain) found.add(domain.slug);
   }
-  return found;
+  return domains.filter((domain) => found.has(domain.slug));
 }
 
 export function readingMinutes(raw) {
